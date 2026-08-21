@@ -31,6 +31,12 @@ export const SIDEBAR_COLLAPSED = 56
  * LG breakpoint); a manual toggle below it re-expands over the squeezed center
  * (stores.ts narrowExpanded). */
 export const SIDEBAR_AUTO_COLLAPSE = 1024
+/** Frame width below which the compact rail becomes an off-canvas drawer. */
+export const SIDEBAR_MOBILE_DRAWER = 720
+/** Maximum mobile drawer width; narrower frames retain a 24px dismissal edge. */
+export const SIDEBAR_MOBILE_DRAWER_MAX = 340
+/** Visible frame edge left beside a mobile drawer on compact screens. */
+export const SIDEBAR_MOBILE_DRAWER_GUTTER = 24
 /** Details drag clamp floor. */
 export const DETAILS_MIN = 300
 /** Details drag clamp ceiling. */

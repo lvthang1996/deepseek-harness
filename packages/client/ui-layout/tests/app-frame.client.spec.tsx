@@ -11,7 +11,7 @@
  * resizes are driven through the ResizeObserver stub.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, render } from '@testing-library/react'
+import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { useSyncExternalStore } from 'react'
 import { AppFrame } from '@deepseek-ai/dsh-client-ui-layout/src/client/AppFrame.tsx'
 import type { AppFrameProps } from '@deepseek-ai/dsh-client-ui-layout/src/client/AppFrame.tsx'
@@ -58,7 +58,7 @@ function mountFrame() {
   const slotCalls: { key: string; props: unknown }[] = []
   const renderSlot = ((key: string, owner: object) => {
     slotCalls.push({ key, props: owner })
-    if (key === 'sidebar') return <div data-testid="sidebar-content" />
+    if (key === 'sidebar') return <div data-testid="sidebar-content"><div role="treeitem" aria-selected="false">Session</div></div>
     if (key === 'conversation') return <div data-testid="center-content" />
     if (key === 'details') return <div data-testid="details-content" />
     if (key === 'conversation.empty') return <div data-testid="empty-content" />
@@ -285,6 +285,55 @@ describe('AppFrame', () => {
 })
 
 describe('AppFrame — narrow-viewport auto-collapse', () => {
+  it('gives phones a full-width conversation and an off-canvas navigation drawer', () => {
+    frameWidth = 390
+    const { frame, slotCalls, getByRole, getByTestId } = mountFrame()
+    expect(tracks(frame)).toEqual([0, 0])
+    expect(frame.hasAttribute('data-mobile')).toBe(true)
+    expect(slotCalls.filter(c => c.key === 'sidebar').at(-1)!.props)
+      .toEqual({ collapsed: false, width: 340 })
+    expect(getByTestId('sidebar-content').parentElement!.getAttribute('aria-hidden')).toBe('true')
+    expect((getByTestId('sidebar-content').parentElement as HTMLElement).inert).toBe(true)
+    expect((getByTestId('details-content').parentElement as HTMLElement).inert).toBe(true)
+
+    const menu = getByRole('button', { name: 'Open navigation' })
+    expect(menu.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(menu)
+    expect(frame.hasAttribute('data-sidebar-open')).toBe(true)
+    expect(document.activeElement).toBe(document.getElementById(menu.getAttribute('aria-controls')!))
+    expect(getByRole('button', { name: 'Close navigation' })).toBeTruthy()
+    expect((getByTestId('sidebar-content').parentElement as HTMLElement).inert).toBe(false)
+    expect((getByTestId('center-content').parentElement as HTMLElement).inert).toBe(true)
+
+    fireEvent.click(getByRole('treeitem', { name: 'Session' }))
+    expect(frame.hasAttribute('data-sidebar-open')).toBe(false)
+    fireEvent.click(getByRole('button', { name: 'Open navigation' }))
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(frame.hasAttribute('data-sidebar-open')).toBe(false)
+    expect(document.activeElement).toBe(getByRole('button', { name: 'Open navigation' }))
+    expect((getByTestId('sidebar-content').parentElement as HTMLElement).inert).toBe(true)
+    expect((getByTestId('center-content').parentElement as HTMLElement).inert).toBe(false)
+    expect(frame.querySelectorAll('[class*="handle"]')).toHaveLength(0)
+  })
+
+  it('presents details as a phone takeover and restores the conversation on close', () => {
+    frameWidth = 390
+    const { frame, instance, getByTestId } = mountFrame()
+    act(() => { instance.actions.openDetails() })
+    expect(frame.hasAttribute('data-mobile-details-open')).toBe(true)
+    expect((getByTestId('center-content').parentElement as HTMLElement).inert).toBe(true)
+    expect((getByTestId('details-content').parentElement as HTMLElement).inert).toBe(false)
+    const menu = frame.querySelector('[aria-label="Open navigation"]')!
+    expect(menu.hasAttribute('hidden')).toBe(true)
+
+    act(() => { instance.actions.closeDetails() })
+    expect(frame.hasAttribute('data-mobile-details-open')).toBe(false)
+    expect((getByTestId('center-content').parentElement as HTMLElement).inert).toBe(false)
+    expect((getByTestId('details-content').parentElement as HTMLElement).inert).toBe(true)
+    expect(menu.hasAttribute('hidden')).toBe(false)
+  })
+
   it('mounts collapsed below the breakpoint with no sidebar handle', () => {
     frameWidth = 980
     const { frame, slotCalls } = mountFrame()

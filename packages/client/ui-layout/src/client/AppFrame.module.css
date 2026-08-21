@@ -23,6 +23,7 @@
 }
 
 .sidebarCol {
+  grid-column: 1;
   min-width: 0;
   overflow: hidden;
   background: var(--dsw-specific-sidebar-fill);
@@ -30,6 +31,7 @@
 }
 
 .centerCol {
+  grid-column: 2;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -37,6 +39,7 @@
 }
 
 .detailsCol {
+  grid-column: 3;
   min-width: 0;
   overflow: hidden;
   border-left: 1px solid var(--dsw-alias-border-l2);
@@ -116,4 +119,105 @@
 
 .overlayLayer > * {
   pointer-events: auto;
+}
+
+.mobileNavButton,
+.mobileBackdrop {
+  display: none;
+}
+
+/* Phone layout: the conversation owns the full viewport and navigation moves
+   to an off-canvas drawer. `left` animates instead of `transform`, because a
+   transformed sidebar would trap its fixed-position settings dialog inside
+   the drawer's containing block. */
+.frame[data-mobile] {
+  grid-template-columns: 0 minmax(0, 1fr) 0 !important;
+  transition: none;
+}
+
+.frame[data-mobile] .centerCol {
+  --dsh-conversation-header-left: 64px;
+  --dsh-composer-side-clearance: 12px;
+  --dsh-chat-side-gap: 8px;
+}
+
+.frame[data-mobile] .sidebarCol {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-100% - 12px);
+  z-index: 12;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-right: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 0 20px 20px 0;
+  box-shadow: var(--dsw-shadow-lv3);
+  transition: left var(--ds-transition-duration-slow) var(--ds-ease-in-out);
+}
+
+.frame[data-mobile][data-sidebar-open] .sidebarCol {
+  left: 0;
+}
+
+.frame[data-mobile] .mobileBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: block;
+  padding: 0;
+  border: none;
+  background: var(--dsw-alias-bg-mask-1);
+  backdrop-filter: var(--dsw-mask-blur);
+}
+
+.frame[data-mobile] .mobileNavButton:not([hidden]) {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top, 0px));
+  left: max(8px, env(safe-area-inset-left, 0px));
+  z-index: 11;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--dsw-alias-border-l2-darkmode-thin);
+  border-radius: 14px;
+  background: var(--dsw-alias-button-floating-fill);
+  box-shadow: var(--dsw-shadow-lv2);
+  color: var(--dsw-alias-label-primary);
+  cursor: pointer;
+}
+
+.mobileNavButton span {
+  width: 18px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: currentcolor;
+}
+
+.frame[data-mobile] .handle {
+  display: none;
+}
+
+/* Tool details use the same phone screen as a takeover surface rather than a
+   zero-width desktop column. The details plugin already owns its header and
+   close action, while AppFrame owns only the sheet geometry. */
+.frame[data-mobile][data-mobile-details-open] .detailsCol {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  width: 100%;
+  overflow: hidden;
+  border-left: none;
+  background: var(--dsw-alias-bg-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame[data-mobile] .sidebarCol {
+    transition: none;
+  }
 }
