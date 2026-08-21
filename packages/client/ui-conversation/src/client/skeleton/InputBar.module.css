@@ -16,7 +16,7 @@
      the sides narrow with the shared width axis); the bottom gradient mask
      is owned by the chat scroller. No top pad: the composer stack's gap owns
      the space above; the status strip still carries its own margin. */
-  padding: 0 var(--dsh-composer-side-clearance) 8px;
+  padding: 0 var(--dsh-composer-side-clearance) max(8px, env(safe-area-inset-bottom, 0px));
 }
 
 .hero {
@@ -470,4 +470,42 @@
   text-decoration: line-through;
   opacity: 0.7;
   color: var(--dsw-alias-state-error-primary);
+}
+
+@media (max-width: 719px) {
+  .card {
+    border-radius: 20px;
+  }
+
+  .row {
+    gap: 8px;
+    padding: 4px 8px 8px;
+  }
+
+  .tools {
+    gap: 10px;
+  }
+
+  .modes {
+    gap: 6px;
+  }
+
+  .trailing {
+    gap: 8px;
+  }
+
+  .add {
+    width: 36px;
+    height: 36px;
+  }
+
+  .select {
+    height: 36px;
+  }
+
+  .primary {
+    width: 40px;
+    height: 40px;
+    transform: none;
+  }
 }
